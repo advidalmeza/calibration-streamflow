@@ -20,6 +20,7 @@ library(lubridate)
 library(reldist)
 library(purrr)
 library(ggpubr)
+library(here)
 ```
 
 # Background material
@@ -33,7 +34,7 @@ from a hydrologic model applied to a Sierra watershed
 
 ```{r simple}
 
-sager = read.table("../Data/sager.txt", header=T)
+sager = read.table(here("Data", "sager.txt"), header=T)
 head(sager)
 
 # add date
@@ -65,11 +66,11 @@ ggplot(sager, aes(obs, model))+geom_point()+geom_abline(intercept=0, slope=1, co
 ```{r}
 
 
-source("../R/nse.R")
+source(here("R", "nse.R"))
 
-source("../R/relerr.R")
+source(here("R", "relerr.R"))
 
-source("../R/cper.R")
+source(here("R", "cper.R"))
 
 nse
 relerr
@@ -142,7 +143,7 @@ cper(m = sager_winter$model, o = sager_winter$obs, weight.nse = 0.8)
 ```{r multimetric}
 
 # turn your evaluation metric into a function
-source("../R/compute_lowflowmetrics.R")
+source(here("R", "compute_lowflowmetrics.R"))
 compute_lowflowmetrics
 
 compute_lowflowmetrics(m=sager$model,o=sager$obs, month=sager$month, day=sager$day, year=sager$year, wy=sager$wy)
@@ -197,11 +198,11 @@ perf = perf %>% mutate(combined2 = 0.1*annual_min_cor + 0.1*annual_min_err_trans
 perf
 
 # easier to put all this in a function
-source("../R/compute_lowflowmetrics_all.R")
+source(here("R", "compute_lowflowmetrics_all.R"))
 
 compute_lowflowmetrics_all
 
-source("../R/highflowmetrics.R")
+source(here("R", "highflowmetrics.R"))
 
 
 ```
@@ -253,7 +254,7 @@ Some code to help organize things
 
 # multiple results - lets say we've run the model for multiple years, 
 #each column  is streamflow for a different parameter set
-msage = read.table("../Data/sagerm.txt", header = T)
+msage = read.table(here("Data", "sagerm.txt"), header = T)
 
 # keep track of number of simulations (e.g results for each parameter set) 
 # use as a column names
@@ -308,7 +309,7 @@ head(res)
 
 # another example using our low flow statistics
 # use apply to compute for all the data
-source("../R/compute_lowflowmetrics_all.R")
+source(here("R", "compute_lowflowmetrics_all.R"))
 
 res <- short_msage %>% 
   select(-date, -month, -day, -year, -wy, -obs) %>%
