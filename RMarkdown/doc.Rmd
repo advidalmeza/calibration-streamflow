@@ -14,6 +14,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
+#LOAD PACKAGES
 library(sensitivity)
 library(tidyverse)
 library(lubridate)
@@ -33,7 +34,7 @@ from a hydrologic model applied to a Sierra watershed
 # Graph
 
 ```{r simple}
-
+#read in data 
 sager = read.table(here("Data", "sager.txt"), header=T)
 head(sager)
 
@@ -65,17 +66,20 @@ ggplot(sager, aes(obs, model))+geom_point()+geom_abline(intercept=0, slope=1, co
 
 ```{r}
 
-
+#source nse calculating function 
 source(here("R", "nse.R"))
 
+#source relative error calculating function
 source(here("R", "relerr.R"))
 
-source(here("R", "cper.R"))
+#source combined performance calculating function 
+source(here("R", "cper.R")) #combining NSE and relative error with 50/50 weighting 
 
 nse
 relerr
 cper
 
+#evaluate performance for sager data
 nse(m=sager$model, o=sager$obs)
 
 relerr(m=sager$model, o=sager$obs)*100
@@ -202,9 +206,6 @@ source(here("R", "compute_lowflowmetrics_all.R"))
 
 compute_lowflowmetrics_all
 
-source(here("R", "highflowmetrics.R"))
-
-
 ```
 
 # Your turn! Part 1: Come up with a combined metric that you think is interesting 
@@ -218,7 +219,7 @@ source(here("R", "highflowmetrics.R"))
 ```{r your_turn_part1}
 # add your code here (or start new file if you want)
 
-
+source(here("R", "highflowmetrics.R"))
 
 ```
 
@@ -269,6 +270,7 @@ msage$month = sager$month
 msage$year = sager$year
 msage$day = sager$day
 msage$wy = sager$wy
+
 
 # lets add observed
 msage = left_join(msage, sager[,c("obs","date")], by = c("date"))
