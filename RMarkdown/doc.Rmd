@@ -8,6 +8,8 @@ output: html_document
 # Metric Function: highflowmetrics()
 Explain why we choose months, annual maximum, and annual max correlation, high month error, and high month correlation, and why high flow matters
 
+We chose to examine how well the model predicted high stream flows because we felt that it could be important for estimating sediment transport.
+
 # Application
 ## Setting up Environment
 ```{r setup, echo = FALSE}
