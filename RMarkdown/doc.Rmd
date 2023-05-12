@@ -12,7 +12,7 @@ We chose to examine how well the model predicted high stream flows because we fe
 
 # Application
 ## Setting up Environment
-```{r setup, echo = FALSE}
+```{r setup, message = FALSE, warning = FALSE}
 # Load packages
 library(here)
 library(sensitivity)
@@ -21,6 +21,7 @@ library(lubridate)
 library(reldist)
 library(purrr)
 library(ggpubr)
+library(patchwork)
 
 # Source nse() function 
 source(here::here("R", "nse.R"))
@@ -40,7 +41,8 @@ msage <- read.table(here::here('Data', 'sagerm.txt'), header = T)
 ```
 
 ### Data Pre-Processing
-```{r}
+```{r, message = FALSE, warning = FALSE}
+#Single prodiction dataset
 sager <- sager %>% 
   mutate(date = paste(day, month, year, sep = '/')) %>%
   mutate(date = as.Date(date,'%d/%m/%Y'))
@@ -62,7 +64,8 @@ tmp <- sager %>%
   summarize(model = sum(model), obs = sum(obs))
 ```
 
-```{r message = FALSE}
+```{r message = FALSE, warning=FALSE}
+#101 simulations dataset 
 nsim <- ncol(msage)
 snames <- sprintf("S%d", seq(from = 1, to = nsim))
 colnames(msage) <- snames
@@ -87,22 +90,24 @@ short_msage <- subset(msage, wy < 1975)
 ```
 
 ## Apply highflowmetrics() function
-```{r}
+```{r, message = FALSE, warning = FALSE}
+#apply highflowmetrics() function to all simulations in msage, only for water years before 1975
 res <- short_msage %>% 
   select(-date, -month, -day, -year, -wy, -obs) %>%
   map_df(compute_highflowmetrics, o = short_msage$obs,
          month = short_msage$month, day = short_msage$day, 
          year = short_msage$year, wy = short_msage$wy)
 
+#add simulation names as a new column
 res$sim <- snames
 
-# graph range of performance measures
+# prepare data to graph range of performance measures
 resl <- res %>% 
   pivot_longer(-sim, names_to = "metric", values_to = "value")
 
 # Select the best and worst based on the combined metric
-best <- res[which.max(res$combined),]
-worst <- res[which.min(res$combined),]
+best <- res[which.max(res$combined),] #S89
+worst <- res[which.min(res$combined),] #S15
  
 compruns <- msage %>% 
   select(best$sim, worst$sim, date, obs, month, day, year, wy)
@@ -120,55 +125,64 @@ compruns_mwyl <- compruns_mwy %>%
 
 ## Visualization
 
-```{r multiple}
-
+```{r multiple, message = FALSE, warning = FALSE}
+#Graphing a time series of the streamflow ~ predictions + observed
 p1 <- ggplot(subset(msagel, wy == 1970), 
             aes(as.Date(date), flow, col = run)) + 
   geom_line() + 
+  theme_minimal() +
   theme(legend.position = "none")
-
-p1
 
 p1 + 
   geom_line(data = subset(sager, wy == 1970), 
             aes(as.Date(date), obs), 
-            size = 2, col = "black", linetype = 2) + 
-  labs(y = "Streamflow", x = "Date")
+            size = 1.5, col = "black", linetype = 2) + 
+  labs(y = "Streamflow (cubic feet per second)", 
+       x = "Date", 
+       title = "Graphing simulations of streamflow predictions along with the true observed values")
 
-ggplot(resl, aes(metric, value)) + 
-  geom_boxplot() + 
-  facet_wrap(~metric, scales = "free")
 
- ggplot(msage, aes(date, msage[,best$sim])) + 
-   geom_line() + 
-   geom_line(aes(date, obs), col = "red") 
+# Creating boxplots to compare the true measured values to the best and worst simulations
 
- compruns_mwyl %>% 
-   subset(month %in% c(12, 1, 2)) %>% 
+annual_plot <- compruns_mwyl %>%
    ggplot(aes(sim, flow)) + 
-   geom_boxplot()
-```
+   geom_boxplot() +
+  theme_minimal() +
+  labs(x = "Simulation",
+       y = "Streamflow (cubic feet per second",
+       title = "For annual values, there is \n not much difference between \n the best and worst simulations")
 
-```{r}
-ggplot(resl, aes(metric, value)) + 
-  geom_boxplot() + 
-  facet_wrap(~metric, scales = "free")
-```
 
-```{r}
-# lets start with streamflow estimates from best performing parameter set
- ggplot(msage, aes(date, msage[,best$sim])) + 
-   geom_line() + 
-   geom_line(aes(date, obs), col = "red") 
-
-```
-
-```{r}
- compruns_mwyl %>% 
-   subset(month %in% c(12, 1, 2)) %>% 
+may_plot <- compruns_mwyl %>% 
+   subset(month %in% c(5)) %>% 
    ggplot(aes(sim, flow)) + 
-   geom_boxplot()
+   geom_boxplot() +
+  theme_minimal() +
+  labs(x = "Simulation",
+       y = "Streamflow (cubic feet per second",
+       title = "The best simulation matched \n the true observations much closer \n in May, the peak stremflow month")
+
+annual_plot + may_plot
+
+
+#Plot to compare best simulation to the observed values 
+ ggplot(msage, aes(date, log(msage[,best$sim]))) + 
+   geom_line() + 
+   geom_line(aes(date, log(obs)), col = "red") +
+   theme_minimal() +
+   labs(x = "Date",
+        y = "Logged Streamflow",
+        title = "Comparing the best simulation to the true observed values",
+        subtitle = "The log of the streamflow was used to better compare low steamflow values")
+
+ 
+ 
+##Code to see boxplot for each error metric  
+# ggplot(resl, aes(metric, value)) + 
+#   geom_boxplot() + 
+#   facet_wrap(~metric, scales = "free")
 ```
+
 
 ## Discussion 
 A short paragraph discussing why you choose the output and performance measures that you did and some thoughts (1-2 sentences) on what your calibration and post-calibration uncertainty analysis tells you
