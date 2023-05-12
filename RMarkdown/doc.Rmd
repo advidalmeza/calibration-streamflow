@@ -87,7 +87,9 @@ resl <- res %>%
 best <- res[which.max(res$combined),]
 worst <- res[which.min(res$combined),]
  
-compruns <- msage %>% select(best$sim, worst$sim, date, obs, month, day, year, wy)
+compruns <- msage %>% 
+  select(best$sim, worst$sim, date, obs, month, day, year, wy)
+
 compruns <- subset(compruns, wy > 1970)
 
 compruns_mwy <- compruns %>% 
@@ -134,13 +136,6 @@ cper(m = sager_winter$model, o = sager_winter$obs, weight.nse = 0.8)
 
 ```{r multiple}
 
-# multiple results - lets say we've run the model for multiple years, 
-#each column  is streamflow for a different parameter set
-
-# keep track of number of simulations (e.g results for each parameter set) 
-# use as a column names
-
-
 p1 <- ggplot(subset(msagel, wy == 1970), 
             aes(as.Date(date), flow, col = run)) + 
   geom_line() + 
@@ -148,14 +143,11 @@ p1 <- ggplot(subset(msagel, wy == 1970),
 
 p1
 
-# lets add observed streamflow
 p1 + 
   geom_line(data = subset(sager, wy == 1970), 
             aes(as.Date(date), obs), 
             size = 2, col = "black", linetype = 2) + 
   labs(y = "Streamflow", x = "Date")
-
-
 
 ggplot(resl, aes(metric, value)) + 
   geom_boxplot() + 
@@ -165,21 +157,8 @@ ggplot(resl, aes(metric, value)) +
    geom_line() + 
    geom_line(aes(date, obs), col = "red") 
 
- worst = res[which.min(res$combined),]
- 
- compruns = msage %>%
-   select(best$sim, worst$sim, date, obs, month, day, year, wy)
-
- compruns = subset(compruns, wy > 1970)
- 
- compruns_mwy = compruns %>% 
-   select(-c(day,date, year)) %>% 
-   group_by(month, wy) %>% 
-   summarize(across(everything(), mean))
-
- 
  compruns_mwyl %>% 
-   subset(month == 8) %>% 
+   subset(month %in% c(12, 1, 2)) %>% 
    ggplot(aes(sim, flow)) + 
    geom_boxplot()
 ```
