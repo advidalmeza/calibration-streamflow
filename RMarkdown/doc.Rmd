@@ -5,9 +5,12 @@ date: '`r Sys.Date()`'
 output: html_document
 ---
 
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+# Metric Function: highflowmetrics()
+Explain why we choose months, annual maximum, and annual max correlation, high month error, and high month correlation, and why high flow matters
 
+# Application
+## Setting up Environment
+```{r setup, echo = FALSE}
 # Load packages
 library(here)
 library(sensitivity)
@@ -17,16 +20,16 @@ library(reldist)
 library(purrr)
 library(ggpubr)
 
-# Source NSE calculating function 
+# Source nse() function 
 source(here::here("R", "nse.R"))
 
-# Source relative error calculating function
+# Source relerr() function for relative error
 source(here::here("R", "relerr.R"))
 
 # Source combined performance calculating function for NSE and relative error with 50/50 weighting 
 source(here::here("R", "cper.R"))
 
-# Source highflowmetrics()
+# Source highflowmetrics() function
 source(here::here("R", "highflowmetrics.R"))
 
 # Read data frames
@@ -34,7 +37,8 @@ sager <- read.table(here::here('Data', 'sager.txt'), header = T)
 msage <- read.table(here::here('Data', 'sagerm.txt'), header = T) 
 ```
 
-```{r include = FALSE}
+### Data Pre-Processing
+```{r}
 sager <- sager %>% 
   mutate(date = paste(day, month, year, sep = '/')) %>%
   mutate(date = as.Date(date,'%d/%m/%Y'))
@@ -44,13 +48,22 @@ sagerl <- sager %>%
   pivot_longer(cols = c("model","obs"),
                names_to = "source",
                values_to = "flow")
+
+# Set different time step
+sager_wy <- sager %>% 
+  group_by(wy) %>% 
+  summarize(model = sum(model), obs = sum(obs))
+
+# Sum by month
+tmp <- sager %>% 
+  group_by(wy, month) %>% 
+  summarize(model = sum(model), obs = sum(obs))
 ```
 
 ```{r message = FALSE}
-nsim = ncol(msage)
-snames = sprintf("S%d", seq(from = 1, to = nsim))
-colnames(msage) = snames
-
+nsim <- ncol(msage)
+snames <- sprintf("S%d", seq(from = 1, to = nsim))
+colnames(msage) <- snames
 
 # lets say we know the start date from our earlier output
 msage$date <- sager$date
@@ -69,8 +82,10 @@ msagel <- msage %>%
                values_to = "flow")
 
 short_msage <- subset(msage, wy < 1975)
+```
 
-
+## Apply highflowmetrics() function
+```{r}
 res <- short_msage %>% 
   select(-date, -month, -day, -year, -wy, -obs) %>%
   map_df(compute_highflowmetrics, o = short_msage$obs,
@@ -101,38 +116,7 @@ compruns_mwyl <- compruns_mwy %>%
   pivot_longer(cols = !c(month, wy), names_to = "sim", values_to = "flow")
 ```
 
-# Scale and Subsetting Data
-
-```{r message = FALSE}
-# Set different time step
-sager_wy <- sager %>% 
-  group_by(wy) %>% 
-  summarize(model = sum(model), obs = sum(obs))
-
-# Sum by month
-tmp <- sager %>% 
-  group_by(wy, month) %>% 
-  summarize(model = sum(model), obs = sum(obs))
-```
-
-```{r}
-# Extract for winter months
-sager_winter <- subset(tmp, month %in% c(12, 1, 2))
-
-# Find correlation for winter
-cor(sager_winter$model, sager_winter$obs)
-
-# Find Nash Sutcliffe Efficiency for winter
-nse(m = sager_winter$model, o = sager_winter$obs)
-
-# Find relative error for winter
-relerr(m = sager_winter$model, o = sager_winter$obs)*100
-
-# Find combined performance for winter
-cper(m = sager_winter$model, o = sager_winter$obs, weight.nse = 0.8)
-```
-
-## Msage 
+## Visualization
 
 ```{r multiple}
 
@@ -163,23 +147,6 @@ ggplot(resl, aes(metric, value)) +
    geom_boxplot()
 ```
 
-## Metric Function 
-Explain why
-
-## Calibration: Apply Metric Function 
-
-```{r}
-nse(m = sager$model, o = sager$obs)
-relerr(m = sager$model, o = sager$obs)*100
-cper(m = sager$model, o = sager$obs, weight.nse = 0.8)
-```
-
-  * Part 2 from above: 
-    1. Apply your performance function to a subset of the Sagehen data set (with multiple simulations) that you want to use for calibration 
-    2. Summarize the performance over the calibration period in 1-2 graphs; you can decide what is useful 
-
-### Performance Evaluation
-
 ```{r}
 ggplot(resl, aes(metric, value)) + 
   geom_boxplot() + 
@@ -200,7 +167,6 @@ ggplot(resl, aes(metric, value)) +
    ggplot(aes(sim, flow)) + 
    geom_boxplot()
 ```
-
 
 ## Discussion 
 A short paragraph discussing why you choose the output and performance measures that you did and some thoughts (1-2 sentences) on what your calibration and post-calibration uncertainty analysis tells you
