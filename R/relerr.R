@@ -6,18 +6,18 @@
 #' @return relerr
 
 
-relerr = function(m,o) {
+relerr <- function(m,o) {
   
   # error: model - observation
-  err = m-o
+  err <- m-o
   
   #
-  meanobs = mean(o)
+  meanobs <- mean(o)
   
   # mean error: model - observation
-  meanerr = mean(err)
+  meanerr <- mean(err)
   
   # relative 
-  res = meanerr/meanobs
+  res <- meanerr/meanobs
   return(res)
 }

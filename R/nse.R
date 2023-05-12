@@ -6,23 +6,24 @@
 #' @return nse
 
 
-nse = function(m, o) {
+nse <- function(m, o) {
 
   # error: model - observation
-  err = m-o
+  err <- m - o
   
   # mean observation value
-  meanobs = mean(o)
+  meanobs <- mean(o)
   
   # mean squared error
-  mse = sum(err*err)
+  mse <- sum(err*err)
   
   # variance in mean observation
-  ovar = sum((o-meanobs)*(o-meanobs))
+  ovar <- sum((o-meanobs)*(o-meanobs))
   
   # Nash Sutcliffe Efficiency 
-  nse = 1.0-mse/ovar
+  nse <- 1.0-mse/ovar
 
   return(nse)
+  
 }
 

@@ -8,23 +8,23 @@ output: html_document
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-#LOAD PACKAGES
+# Load packages
+library(here)
 library(sensitivity)
 library(tidyverse)
 library(lubridate)
 library(reldist)
 library(purrr)
 library(ggpubr)
-library(here)
 
-# Source nse calculating function 
-source(here("R", "nse.R"))
+# Source NSE calculating function 
+source(here::here("R", "nse.R"))
 
 # Source relative error calculating function
-source(here("R", "relerr.R"))
+source(here::here("R", "relerr.R"))
 
-#source combined performance calculating function 
-source(here("R", "cper.R")) #combining NSE and relative error with 50/50 weighting 
+# Source combined performance calculating function for NSE and relative error with 50/50 weighting 
+source(here::here("R", "cper.R"))
 
 ```
 
