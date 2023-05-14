@@ -170,17 +170,17 @@ annual_plot <- compruns_mwyl %>%
        subtitle = 'No signficant difference between \n best and worst simulations')
 
 
-feb_plot <- compruns_mwyl %>% 
-  subset(month %in% c(2)) %>% 
+may_plot <- compruns_mwyl %>% 
+  subset(month %in% c(5)) %>% 
   ggplot(aes(sim, flow)) + 
   geom_boxplot() +
   theme_minimal() +
   labs(x = 'Simulation',
        y = 'Streamflow (cubic feet per second)',
        title = 'Month Values',
-       subtitle = 'No signficant difference between \n best and worst simulations')
+       subtitle = 'The best simulation matched \n the true observations much closer \n in May, the peak stremflow month')
 
-annual_plot + feb_plot
+annual_plot + may_plot
 ```
 
 And finally, let's plot to compare best simulation to the observed values: 
